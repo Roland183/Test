@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 #----------------------------------------------------------------
 # Mein Dynamisches Neuronales Netz
-# Dateiname: Mein_DNN_712.py
+# Dateiname: Mein_DNN_1013.py
 # R.J.Nickerl
 # 05.04.20 Python 3.8
 #--------------------------------------------------------------
@@ -22,14 +22,15 @@ import matplotlib.pyplot
 class dynNN:
 
     # initialise the dynNN
-    def __init__(self,inputnodes, hiddennodes, outputnodes, learningrate, daempfungsnodes, stufenwert):
+    def __init__(self,inputnodes, hiddennodes, outputnodes, learningrate, stufenwert, maxverzoegerung):
         # set number of nodes in each input, hidden, output and daempfungs layer
-        self.inodes = inputnodes
-        self.hnodes = hiddennodes
-        self.onodes = outputnodes
-        self.lr     = learningrate        
-        self.dnodes = daempfungsnodes
-        self.swert  = stufenwert
+        self.inodes = inputnodes        # Anzahl Input Nodes
+        self.hnodes = hiddennodes       # Anzahl Hidden Nodes
+        self.dnodes = self.hnodes       # Anzahl Damp Nodes (=Dämpfungsknoten)
+        self.onodes = outputnodes       # Anzahl Output Nodes
+        self.lr     = learningrate      # Anzahl Lerndurchläufe        
+        self.swert  = stufenwert        # Höhe des Schwellwertes der Hidden Nodes bei dem der Knoten "schaltet"
+        self.mverz  = maxverzoegerung   # Anzahl der maximalen Verzögerungsläufe bevor ein Hidden Neuron dämpft
         
         # link weight matrices: wih, who and dhh
         # weights inside the arrays are:
@@ -39,9 +40,20 @@ class dynNN:
         # w12 w22   d12 d22
         self.wih = numpy.random.normal(0.0, pow(self.hnodes, -0.5), (self.hnodes, self.inodes))
         self.who = numpy.random.normal(0.0, pow(self.onodes, -0.5), (self.onodes, self.hnodes))
-        self.dhh = numpy.random.normal(0.0, pow(self.hnodes, -0.5), (self.hnodes, self.hnodes)) # prüfen ob die erstbelegung stimmt
+        self.dhh = numpy.random.normal(0.0, pow(self.dnodes, -0.5), (self.dnodes, self.dnodes))
         pass
     
+        # Vector: D[i] Dämpfungsnode werden random erstbesetzt
+        # D[1]
+        # D[2] etc.
+        self.D_start = numpy.random.randint(self.mverz, size=(self.dnodes))
+        self.D_akt = numpy.zeros( [self.dnodes] )
+        for i in range(self.dnodes):
+            self.D_akt[i] = self.D_start[i]
+        print("D_start= ", self.D_start)
+        print("D_akt= ", self.D_akt)
+
+        
         # acivation function is the sigmoid function Änderung: hier wird die Stufenfunktion verwendet
         self.activation_function = lambda x: scipy.special.expit(x)
 
@@ -50,7 +62,7 @@ class dynNN:
         print("Anzahl input nodes= ", self.inodes)
         print("Anzahl hidden nodes= ", self.hnodes)
         print("Anzahl output nodes= ", self.onodes)
-        print("Anzahl dämpfungs nodes= ", self.dnodes)
+        print("Anzahl damp nodes= ", self.dnodes)
         print("wih= ")
         print(self.wih.round(3))
         print("who= ")
@@ -84,6 +96,9 @@ class dynNN:
         #print("hs vorher= \n{}".format(self.hs))
         for i in range(self.hnodes):
             self.hs_alt[i] = self.hs[i]             # vorher den alten "hs" als "hi_alt" abspeichern
+            #print("Spriúng D_akt vorher = ", self.D_akt[i])
+            #D_akt[i] = D_akt[i] -1
+            #print("Spriúng D_akt nachher= ", D_akt[i])
             #print("self.hidden_inputs[i]xxx= ", self.hidden_inputs[i], i)
             if self.hidden_inputs[i] > self.swert:
                 self.hs[i] = 1
@@ -115,7 +130,7 @@ class dynNN:
                     #print("self.dhh[i,k]= ", self.dhh[i,k], i, k)
                     pass
                 if self.hs_alt[i] == self.hs[i]:
-                    self.dhh[i,k] = 0.75*self.dhh[i,k]  # Detektion von 0,0,0,.. kein Feuern des Neurons hs[i]=>Chaos=> Dämpfung auf 75% verkleiner          
+                    self.dhh[i,k] = 0.75*self.dhh[i,k]  # Detektion von 0,0,0, oder 1,1,1.. kein/immer Feuern des Neurons => Dämpfung auf 75% verkleiner          
                     pass
                 
         #print("hs nachher= \n{}".format(self.hs))
@@ -130,24 +145,16 @@ class dynNN:
 ####################################################
 # number of input, hidden, output and daempfungs nodes
 input_nodes = 4
-input_times = 4
 hidden_nodes = 5
-
 output_nodes = 2
-daempfung_nodes = 2
 
-# learning rate
-
-learning_rate = 0.1
-
-# Stufenwert der Stufenfunktion
-stufen_wert = 0.5
-
-# Fiebertemperatur 
-fieber_temp = 0.9
+input_times = 4         # Anzahl der Lerndurchläufe
+learning_rate = 0.1     # learning rate
+stufen_wert = 0.5       # Stufenwert der Stufenfunktion
+max_verzoeg = 5         # Maximale Verzögerungszeit der D-Neuronen
 
 # create instance of dynneural network
-n = dynNN(input_nodes, hidden_nodes, output_nodes, learning_rate, daempfung_nodes, stufen_wert)
+n = dynNN(input_nodes, hidden_nodes, output_nodes, learning_rate, stufen_wert, max_verzoeg)
 n.status()
 
 # Vektor: load Input Vektor: Inp[Zeile,Spalte] ... hier noch manuelle Eingabe!
@@ -215,7 +222,7 @@ for z in range(input_times): # input_times = Anzahl der Durchläufe
 
 
 
-takt_anzahl = 3
+
 
 
 #for alpha in range(3): # 628
