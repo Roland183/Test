@@ -2,7 +2,7 @@
 #----------------------------------------------------------------
 # Mein Dynamisches Neuronales Netz
 # Dateiname: Mein_DNN_1013.py
-# R.J.Nickerl
+# R.J.Nickerl mit github
 # 05.04.20 Python 3.8
 #--------------------------------------------------------------
 try:
@@ -220,21 +220,6 @@ for z in range(input_times): # input_times = Anzahl der Durchläufe
 
 
 
-
-
-
-
-
-#for alpha in range(3): # 628
-#    alpha_wert = numpy.sin(alpha/100)
-#    for t in range(takt_anzahl):
-#        print(t, takt_anzahl, alpha_wert)
-#        n.search(Input)
-#        pass
-#    pass
-
-""
-#n.status()
 
 
 
